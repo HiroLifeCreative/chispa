@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Chispa — mascota animada original</title>
+<style>
+  html,body{margin:0;padding:0;}
+  body{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;background:#141524;padding:28px 16px;box-sizing:border-box;}
+  .page{width:100%;max-width:460px;}
+  :root{--hatch-widget-surface:#1e2033;--hatch-widget-surface-muted:#262842;--hatch-widget-text:#f2f3fa;--hatch-widget-muted:#a6a9c4;--hatch-widget-border:#35385a;--hatch-widget-accent:#ffb020;}
+</style>
+</head>
+<body><div class="page">
+<!--
+  CHISPA · mascota 100% original · código libre para tu proyecto
+  ----------------------------------------------------------------
+  Personaje y código creados desde cero (no reutiliza assets de terceros).
+  Técnicas del motor de animación:
+   · "Tweens" con funciones de easing (outCubic, outElastic, outBounce…)
+   · Máquina de estados de emociones (idle, happy, sleepy, dizzy, love, wow, poked)
+   · Mirada suavizada: las pupilas persiguen el cursor con interpolación
+   · Parpadeo aleatorio + respiración idle (squash & stretch sutil)
+   · Partículas (confeti, "Zzz", corazones) y sonidos sintetizados con WebAudio
+  Todo el dibujo es SVG inline: sin imágenes ni archivos externos.
+-->
+<style>
+  .chispa-wrap{box-sizing:border-box;max-width:430px;margin:0 auto;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-user-select:none;user-select:none;}
+  .chispa-card{background:var(--hatch-widget-surface);
+    border:1px solid var(--hatch-widget-border);border-radius:20px;
+    padding:16px;color:var(--hatch-widget-text);}
+  .chispa-title{font-size:19px;font-weight:800;letter-spacing:.2px;}
+  .chispa-title .dot{color:var(--hatch-widget-accent);}
+  .chispa-sub{font-size:13px;color:var(--hatch-widget-muted);margin:3px 0 12px;line-height:1.45;}
+  .chispa-stage{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;
+    touch-action:none;background:radial-gradient(circle at 50% 115%,#3d4170 0%,#232442 55%,#141524 100%);}
+  .chispa-stage svg{display:block;width:100%;height:auto;}
+  .chispa-stage .st{position:absolute;width:3px;height:3px;border-radius:50%;
+    background:#fff;opacity:.7;animation:chispa-tw 2.8s infinite ease-in-out;pointer-events:none;}
+  @keyframes chispa-tw{0%,100%{opacity:.12;transform:scale(.75)}50%{opacity:.9;transform:scale(1.3)}}
+  .chispa-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .chispa-btns button{flex:1 1 28%;border:1px solid var(--hatch-widget-border);
+    background:var(--hatch-widget-surface-muted);color:var(--hatch-widget-text);
+    border-radius:999px;padding:9px 6px;font-size:13px;font-weight:700;cursor:pointer;
+    transition:transform .08s ease,border-color .15s ease,color .15s ease;}
+  .chispa-btns button:active{transform:scale(.94);}
+  .chispa-btns button.on{border-color:var(--hatch-widget-accent);color:var(--hatch-widget-accent);}
+  .chispa-row{display:flex;justify-content:space-between;align-items:center;margin-top:11px;gap:8px;}
+  .chispa-hint{font-size:12.5px;color:var(--hatch-widget-muted);}
+  .chispa-snd{border:1px solid var(--hatch-widget-border);background:transparent;
+    color:var(--hatch-widget-muted);border-radius:999px;padding:6px 12px;
+    font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .chispa-foot{font-size:11px;color:var(--hatch-widget-muted);margin-top:10px;text-align:center;}
+</style>
+<div class="chispa-wrap">
+  <div class="chispa-card">
+    <div class="chispa-title">Chispa<span class="dot">.</span></div>
+    <div class="chispa-sub">Tu mascota original · mueve el dedo o el cursor y te sigue con la mirada · tócala para saludarla (tócala 3 veces seguidas y se marea)</div>
+    <div class="chispa-stage" id="chispaStage">
+      <span class="st" style="left:12%;top:18%"></span>
+      <span class="st" style="left:24%;top:8%;animation-delay:.7s"></span>
+      <span class="st" style="left:78%;top:14%;animation-delay:1.3s"></span>
+      <span class="st" style="left:88%;top:32%;animation-delay:.4s"></span>
+      <span class="st" style="left:8%;top:44%;animation-delay:1.9s"></span>
+      <span class="st" style="left:66%;top:6%;animation-delay:2.2s"></span>
+      <svg id="chispaSvg" viewBox="0 0 200 235" role="img" aria-label="Chispa, una mascota animada">
+        <defs>
+          <linearGradient id="chispaBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FFA26B"/>
+            <stop offset=".55" stop-color="#FF7A52"/>
+            <stop offset="1" stop-color="#F2603F"/>
+          </linearGradient>
+        </defs>
+        <ellipse id="chispaShadow" cx="100" cy="214" rx="50" ry="8" fill="#000" opacity=".25"/>
+        <g id="chispaMascot">
+          <g id="chispaWobble">
+            <g id="chispaBreath">
+              <g id="chispaSquish">
+                <line x1="100" y1="66" x2="100" y2="38" stroke="#C74B3C" stroke-width="7" stroke-linecap="round"/>
+                <g id="chispaStar">
+                  <polygon points="100,15 102.7,22.3 110.5,22.6 104.4,27.4 106.5,34.9 100,30.6 93.5,34.9 95.6,27.4 89.5,22.6 97.3,22.3"
+                    fill="#FFD93D" stroke="#E8A100" stroke-width="1.5" stroke-linejoin="round"/>
+                </g>
+                <ellipse cx="70" cy="204" rx="17" ry="9" fill="#C74B3C"/>
+                <ellipse cx="130" cy="204" rx="17" ry="9" fill="#C74B3C"/>
+                <ellipse cx="100" cy="134" rx="64" ry="72" fill="url(#chispaBody)"/>
+                <ellipse cx="80" cy="110" rx="18" ry="28" fill="#fff" opacity=".22" transform="rotate(-18 80 110)"/>
+                <ellipse id="chispaBlushL" cx="56" cy="154" rx="11" ry="7.5" fill="#FF8FA3" opacity="0"/>
+                <ellipse id="chispaBlushR" cx="144" cy="154" rx="11" ry="7.5" fill="#FF8FA3" opacity="0"/>
+                <!-- ojos normales -->
+                <g id="chispaENormal">
+                  <g id="chispaEyeL">
+                    <ellipse cx="74" cy="124" rx="15" ry="19" fill="#fff"/>
+                    <g id="chispaPupL">
+                      <circle cx="74" cy="126" r="7.6" fill="#38323E"/>
+                      <circle cx="71.4" cy="123" r="2.6" fill="#fff"/>
+                    </g>
+                  </g>
+                  <g id="chispaEyeR">
+                    <ellipse cx="126" cy="124" rx="15" ry="19" fill="#fff"/>
+                    <g id="chispaPupR">
+                      <circle cx="126" cy="126" r="7.6" fill="#38323E"/>
+                      <circle cx="123.4" cy="123" r="2.6" fill="#fff"/>
+                    </g>
+                  </g>
+                </g>
+                <!-- ojos feliz (^ ^) -->
+                <g id="chispaEHappy" style="display:none" stroke="#38323E" stroke-width="6" stroke-linecap="round" fill="none">
+                  <path d="M62 128 Q74 112 86 128"/><path d="M114 128 Q126 112 138 128"/>
+                </g>
+                <!-- ojos cerrados -->
+                <g id="chispaEClosed" style="display:none" stroke="#38323E" stroke-width="5" stroke-linecap="round" fill="none">
+                  <path d="M62 126 Q74 130 86 126"/><path d="M114 126 Q126 130 138 126"/>
+                </g>
+                <!-- ojos mareados (X X) -->
+                <g id="chispaEDizzy" style="display:none" stroke="#38323E" stroke-width="5" stroke-linecap="round">
+                  <path d="M66 117 L82 133 M82 117 L66 133"/><path d="M118 117 L134 133 M134 117 L118 133"/>
+                </g>
+                <!-- ojos enamorados -->
+                <g id="chispaELove" style="display:none" fill="#FF4D6D">
+                  <path d="M0 8 C-11 0 -9 -10 0 -5 C9 -10 11 0 0 8 Z" transform="translate(74 122)"/>
+                  <path d="M0 8 C-11 0 -9 -10 0 -5 C9 -10 11 0 0 8 Z" transform="translate(126 122)"/>
+                </g>
+                <!-- ojos sorprendidos -->
+                <g id="chispaEWow" style="display:none">
+                  <ellipse cx="74" cy="124" rx="17" ry="22" fill="#fff"/>
+                  <ellipse cx="126" cy="124" rx="17" ry="22" fill="#fff"/>
+                  <circle cx="74" cy="126" r="8.5" fill="#38323E"/><circle cx="71" cy="122.5" r="2.8" fill="#fff"/>
+                  <circle cx="126" cy="126" r="8.5" fill="#38323E"/><circle cx="123" cy="122.5" r="2.8" fill="#fff"/>
+                </g>
+                <!-- cejas de enojo (al tocarla) -->
+                <g id="chispaBrows" style="display:none" stroke="#38323E" stroke-width="5" stroke-linecap="round">
+                  <path d="M60 102 L86 110"/><path d="M140 102 L114 110"/>
+                </g>
+                <!-- bocas -->
+                <path id="chispaMSmile" d="M88 158 Q100 168 112 158" stroke="#38323E" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <ellipse id="chispaMOpen" cx="100" cy="161" rx="9" ry="11" fill="#8C3B3B" style="display:none"/>
+                <path id="chispaMFlat" d="M90 161 L110 161" stroke="#38323E" stroke-width="5" stroke-linecap="round" style="display:none"/>
+                <ellipse id="chispaMSleep" cx="100" cy="160" rx="4" ry="5.5" fill="#8C3B3B" style="display:none"/>
+              </g>
+            </g>
+          </g>
+        </g>
+        <g id="chispaFx"></g>
+      </svg>
+    </div>
+    <div class="chispa-btns">
+      <button data-emote="happy">Feliz</button>
+      <button data-emote="sleepy">Dormir</button>
+      <button data-emote="dizzy">Marear</button>
+      <button data-emote="love">Enamorar</button>
+      <button data-emote="wow">Sorprender</button>
+      <button data-emote="idle">Calmar</button>
+    </div>
+    <div class="chispa-row">
+      <span class="chispa-hint" id="chispaHint">Tócala para saludarla</span>
+      <button class="chispa-snd" id="chispaSnd">Sonido: sí</button>
+    </div>
+    <div class="chispa-foot">Personaje y código 100% originales · libres para tu proyecto</div>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+/* ================= utilidades ================= */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const TAU=Math.PI*2;
+const Ease={
+  linear:t=>t,
+  outCubic:t=>1-Math.pow(1-t,3),
+  inOutSine:t=>-(Math.cos(Math.PI*t)-1)/2,
+  outBack:t=>{const c=1.70158,u=t-1;return 1+(c+1)*u*u*u+c*u*u;},
+  outElastic:t=>t<=0?0:t>=1?1:Math.pow(2,-10*t)*Math.sin((t*10-0.75)*(TAU/3))+1,
+  outBounce:t=>{const n=7.5625,d=2.75;
+    if(t<1/d)return n*t*t; if(t<2/d)return n*(t-=1.5/d)*t+.75;
+    if(t<2.5/d)return n*(t-=2.25/d)*t+.9375; return n*(t-=2.625/d)*t+.984375;}
+};
+/* ============ mini-motor de tweens ============ */
+const tweens=[];
+function tween(o){tweens.push(Object.assign({t:0,dur:.3,ease:Ease.outCubic,update:null,done:null},o));}
+function stepTweens(dt){
+  for(let i=tweens.length-1;i>=0;i--){const w=tweens[i];w.t+=dt;
+    const k=clamp(w.t/w.dur,0,1); if(w.update)w.update(w.ease(k),k);
+    if(k>=1){tweens.splice(i,1); if(w.done)w.done();}}
+}
+/* ===== sonidos sintetizados (sin assets) ===== */
+let ac=null,soundOn=true;
+function tone(f,delay,dur,type,vol){
+  if(!soundOn)return;
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==='suspended')ac.resume();
+    const t=ac.currentTime+(delay||0),o=ac.createOscillator(),g=ac.createGain();
+    o.type=type||'triangle'; o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol||.12,t+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,t+(dur||.12));
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+(dur||.12)+.05);
+  }catch(e){}
+}
+const sfx={
+  pop(){tone(520,0,.09,'triangle',.14);},
+  happy(){tone(523,0,.1);tone(659,.09,.1);tone(784,.18,.18);},
+  dizzy(){tone(392,0,.12,'sawtooth',.05);tone(311,.12,.12,'sawtooth',.05);tone(233,.24,.22,'sawtooth',.05);},
+  love(){tone(659,0,.12,'sine',.1);tone(988,.1,.2,'sine',.1);},
+  wow(){tone(880,0,.16,'sine',.1);},
+  sleep(){tone(330,0,.22,'sine',.07);tone(262,.2,.32,'sine',.07);}
+};
+/* ============ referencias y estado ============ */
+const svg=$('chispaSvg'),stage=$('chispaStage'),fx=$('chispaFx');
+const G={mascot:$('chispaMascot'),wobble:$('chispaWobble'),breath:$('chispaBreath'),
+  squish:$('chispaSquish'),shadow:$('chispaShadow'),star:$('chispaStar'),
+  blushL:$('chispaBlushL'),blushR:$('chispaBlushR')};
+const eyeSets={normal:$('chispaENormal'),happy:$('chispaEHappy'),closed:$('chispaEClosed'),
+  dizzy:$('chispaEDizzy'),love:$('chispaELove'),wow:$('chispaEWow')};
+const mouths={smile:$('chispaMSmile'),open:$('chispaMOpen'),flat:$('chispaMFlat'),sleep:$('chispaMSleep')};
+const eyesN=[{g:$('chispaEyeL'),cx:74,cy:124,pup:$('chispaPupL')},
+             {g:$('chispaEyeR'),cx:126,cy:124,pup:$('chispaPupR')}];
+const S={emote:'idle',until:0,look:{x:0,y:0},tgt:{x:0,y:2},
+  nextBlink:2,nextWander:0,lastPointer:0,pokes:[],breath:0,zzz:0,hearts:0};
+const parts=[];
+const EMOTES={
+  idle:  {eyes:'normal',mouth:'smile',blush:0,  brows:false},
+  poked: {eyes:'normal',mouth:'flat', blush:.3, brows:true},
+  happy: {eyes:'happy', mouth:'smile',blush:.9, brows:false},
+  sleepy:{eyes:'closed',mouth:'sleep',blush:.15,brows:false},
+  dizzy: {eyes:'dizzy', mouth:'open', blush:.3, brows:false},
+  love:  {eyes:'love',  mouth:'smile',blush:1,  brows:false},
+  wow:   {eyes:'wow',   mouth:'open', blush:.2, brows:false}
+};
+const HINTS={idle:'Tócala para saludarla',poked:'¡Ey! Con cuidado…',happy:'¡Yay! ¡Qué alegría!',
+  sleepy:'Shhh… se quedó dormida',dizzy:'Uff… dame un segundo…',love:'¡Le encantas!',
+  wow:'¡Wow! No me lo esperaba'};
+function applyEmote(n){
+  const e=EMOTES[n]||EMOTES.idle;
+  for(const k in eyeSets)eyeSets[k].style.display=(k===e.eyes)?'':'none';
+  for(const k in mouths)mouths[k].style.display=(k===e.mouth)?'':'none';
+  $('chispaBrows').style.display=e.brows?'':'none';
+  G.blushL.setAttribute('opacity',e.blush); G.blushR.setAttribute('opacity',e.blush);
+  setEyeSY(1);
+  document.querySelectorAll('.chispa-btns button').forEach(b=>
+    b.classList.toggle('on',b.dataset.emote===n));
+  $('chispaHint').textContent=HINTS[n]||HINTS.idle;
+}
+function setEmote(n,dur){S.emote=n;S.until=performance.now()/1000+(dur||0);applyEmote(n);}
+/* ============ helpers visuales ============ */
+function setEyeSY(s){for(const e of eyesN)
+  e.g.setAttribute('transform','translate('+e.cx+' '+e.cy+') scale(1 '+s.toFixed(3)+') translate('+(-e.cx)+' '+(-e.cy)+')');}
+function setSquish(sx,sy){G.squish.setAttribute('transform',
+  'translate(100 200) scale('+sx.toFixed(3)+' '+sy.toFixed(3)+') translate(-100 -200)');}
+function setY(y){G.mascot.setAttribute('transform',y?'translate(0 '+y.toFixed(1)+')':'');
+  const k=y?clamp(1-Math.abs(y)/220,0,1):1;
+  G.shadow.setAttribute('rx',(50*k).toFixed(1));
+  G.shadow.setAttribute('opacity',(.25*k).toFixed(2));}
+function blink(){
+  tween({dur:.08,ease:Ease.inOutSine,update:k=>setEyeSY(1-.92*k),done:()=>{
+    tween({dur:.1,ease:Ease.inOutSine,update:k=>setEyeSY(.08+.92*k),done:()=>setEyeSY(1)});}});
+}
+/* ============ partículas ============ */
+const SVGNS='http://www.w3.org/2000/svg';
+function spawn(el,x,y,vx,vy,life){fx.appendChild(el);parts.push({el:el,x:x,y:y,vx:vx,vy:vy,life:life,age:0});}
+function stepParts(dt){
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.age+=dt;
+    if(p.age>=p.life){p.el.remove();parts.splice(i,1);continue;}
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=60*dt;
+    p.el.setAttribute('transform','translate('+p.x.toFixed(1)+' '+p.y.toFixed(1)+')');
+    p.el.setAttribute('opacity',((1-p.age/p.life)*.95).toFixed(2));}
+}
+function burst(n,colors){
+  for(let i=0;i<n;i++){
+    const c=document.createElementNS(SVGNS,'circle');
+    c.setAttribute('r',(2+Math.random()*3).toFixed(1));
+    c.setAttribute('fill',colors[i%colors.length]);
+    const a=Math.random()*TAU,sp=60+Math.random()*90;
+    spawn(c,100,120,Math.cos(a)*sp,Math.sin(a)*sp-70,.9+Math.random()*.5);}
+}
+function spawnZ(){
+  const t=document.createElementNS(SVGNS,'text');
+  t.textContent='Z';t.setAttribute('fill','#9FB2FF');
+  t.setAttribute('font-size','20');t.setAttribute('font-weight','700');
+  spawn(t,150,70,14,-34,1.6);
+}
+function spawnHeart(){
+  const p=document.createElementNS(SVGNS,'path');
+  p.setAttribute('d','M0 8 C-11 0 -9 -10 0 -5 C9 -10 11 0 0 8 Z');
+  p.setAttribute('fill','#FF5D7E');
+  spawn(p,60+Math.random()*80,90,(Math.random()*2-1)*10,-30-Math.random()*20,1.5);
+}
+/* ============ acciones ============ */
+function doHappy(){
+  if(S.emote==='happy')return;
+  setEmote('happy',2.4);sfx.happy();burst(14,['#FFD93D','#FF8FA3','#9FB2FF','#7EF0C1']);
+  tween({dur:.26,ease:Ease.outCubic,update:k=>setY(-56*k),done:()=>{
+    tween({dur:.55,ease:Ease.outBounce,update:k=>setY(-56*(1-k)),done:()=>{setY(0);
+      tween({dur:.14,update:k=>setSquish(1+.1*k,1-.14*k),done:()=>{
+        tween({dur:.5,ease:Ease.outElastic,
+          update:k=>setSquish(1+.1*(1-k),1-.14*(1-k)),done:()=>setSquish(1,1)});}});}});});
+}
+function doWow(){
+  setEmote('wow',1.6);sfx.wow();
+  tween({dur:.22,ease:Ease.outCubic,update:k=>setY(-26*k),done:()=>{
+    tween({dur:.4,ease:Ease.outBounce,update:k=>setY(-26*(1-k)),done:()=>setY(0)});}});
+}
+function doSleepy(){
+  if(S.emote==='sleepy'){setEmote('idle',0);return;}
+  setEmote('sleepy',9);sfx.sleep();
+}
+function doLove(){setEmote('love',2.6);sfx.love();burst(10,['#FF5D7E','#FF8FA3','#FFD93D']);}
+function doDizzy(){
+  setEmote('dizzy',2.6);sfx.dizzy();
+  tween({dur:2.2,ease:Ease.linear,
+    update:function(e,k){const r=Math.sin(k*Math.PI*6)*8*(1-k);
+      G.wobble.setAttribute('transform','rotate('+r.toFixed(2)+' 100 134)');},
+    done:function(){G.wobble.setAttribute('transform','');}});
+}
+/* ============ interacción ============ */
+stage.addEventListener('pointermove',function(e){
+  const r=svg.getBoundingClientRect();
+  const dx=(e.clientX-(r.left+r.width/2))/(r.width/2);
+  const dy=(e.clientY-(r.top+r.height*.55))/(r.height/2);
+  S.tgt={x:clamp(dx,-1,1)*7,y:clamp(dy,-1,1)*5};
+  S.lastPointer=performance.now()/1000;
+});
+svg.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  const now=performance.now()/1000;
+  S.pokes=S.pokes.filter(function(t){return now-t<2.5;});S.pokes.push(now);
+  sfx.pop();
+  tween({dur:.14,ease:Ease.outCubic,update:k=>setSquish(1+.16*k,1-.2*k),done:()=>{
+    tween({dur:.5,ease:Ease.outElastic,
+      update:k=>setSquish(1+.16*(1-k),1-.2*(1-k)),done:()=>setSquish(1,1)});}});
+  if(S.pokes.length>=3){S.pokes=[];doDizzy();}
+  else setEmote('poked',.9);
+});
+document.querySelectorAll('.chispa-btns button').forEach(function(b){
+  b.addEventListener('click',function(){
+    const e=b.dataset.emote;
+    if(e==='happy')doHappy();else if(e==='wow')doWow();
+    else if(e==='sleepy')doSleepy();else if(e==='love')doLove();
+    else if(e==='dizzy')doDizzy();else setEmote('idle',0);
+  });
+});
+$('chispaSnd').addEventListener('click',function(){
+  soundOn=!soundOn;$('chispaSnd').textContent='Sonido: '+(soundOn?'sí':'no');});
+/* ============ bucle principal ============ */
+let last=performance.now();
+function frame(nowMs){
+  const now=nowMs/1000;let dt=(nowMs-last)/1000;last=nowMs;dt=Math.min(dt,.05);
+  stepTweens(dt);
+  if(S.emote!=='idle'&&S.until&&now>S.until)setEmote('idle',0);
+  // respiración idle
+  const sleeping=(S.emote==='sleepy');
+  S.breath+=dt*(sleeping?1.3:2.6);
+  const amp=sleeping?.035:.018,sw=Math.sin(S.breath);
+  G.breath.setAttribute('transform','translate(100 134) scale('+
+    (1-amp*.55*sw).toFixed(4)+' '+(1+amp*sw).toFixed(4)+') translate(-100 -134)');
+  // brillo de la estrella
+  const ss=1+.12*Math.sin(now*3.2);
+  G.star.setAttribute('transform','translate(100 26) scale('+ss.toFixed(3)+') translate(-100 -26)');
+  // mirada: persigue el cursor o deambula sola
+  if(now-S.lastPointer>2.5&&now>S.nextWander){
+    S.nextWander=now+2+Math.random()*2;
+    S.tgt={x:(Math.random()*2-1)*6,y:(Math.random()*2-1)*4};}
+  const f=1-Math.exp(-10*dt);
+  S.look.x=lerp(S.look.x,S.tgt.x,f);S.look.y=lerp(S.look.y,S.tgt.y,f);
+  const canMove=(S.emote==='idle'||S.emote==='poked');
+  for(const e of eyesN)
+    e.pup.setAttribute('transform','translate('+
+      (canMove?S.look.x:0).toFixed(2)+' '+(canMove?S.look.y:0).toFixed(2)+')');
+  if(canMove&&now>S.nextBlink){S.nextBlink=now+2.2+Math.random()*2.8;blink();}
+  if(S.emote==='sleepy'&&now>S.zzz){S.zzz=now+.85;spawnZ();}
+  if(S.emote==='love'&&now>S.hearts){S.hearts=now+.7;spawnHeart();}
+  stepParts(dt);
+  requestAnimationFrame(frame);
+}
+applyEmote('idle');
+requestAnimationFrame(frame);
+})();
+</script>
+</div></body>
+</html>
